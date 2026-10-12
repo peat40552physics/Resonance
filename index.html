@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ห้องทดลองเสมือน: การสั่นพ้องของเสียงในท่อปลายปิด</title>
+<style>
+:root{--navy:#13233f;--blue:#2764a5;--cyan:#4bc0c8;--gold:#f5b942;--ink:#17233b;--muted:#64748b;--paper:#f4f7fb;--white:#fff;--line:#dbe4ef}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);font-family:Tahoma,"Noto Sans Thai",sans-serif;color:var(--ink);line-height:1.55}
+header{background:linear-gradient(125deg,#13233f,#245b8f);color:#fff;padding:28px 20px 32px}
+.wrap{max-width:1100px;margin:auto;padding:0 18px}
+.kicker{font-size:.83rem;letter-spacing:.08em;text-transform:uppercase;color:#aeeaf0;font-weight:bold}
+h1{font-size:clamp(1.5rem,4vw,2.35rem);line-height:1.25;margin:8px 0}
+header p{margin:10px 0 0;max-width:760px;color:#e0ecf8}
+main{padding:22px 0 40px}.layout{display:grid;grid-template-columns:minmax(280px, .85fr) minmax(0,1.4fr);gap:18px;align-items:start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 8px 24px #13233f0a;margin-bottom:18px}
+h2{font-size:1.18rem;margin:0 0 14px;color:var(--navy)}h3{font-size:1rem;margin:15px 0 8px}
+.control{margin:18px 0}.control-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-weight:bold}.value{color:var(--blue);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer;margin:10px 0 2px}
+.small{font-size:.88rem;color:var(--muted)}.formula{background:#edf5fc;border-radius:12px;padding:12px 14px;margin:12px 0;font-size:1.04rem}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.stat{background:#f6f9fd;border:1px solid var(--line);border-radius:12px;padding:12px}.stat span{display:block;font-size:.8rem;color:var(--muted)}.stat strong{font-size:1.12rem;color:var(--navy)}
+canvas{display:block;width:100%;height:auto;border-radius:12px;background:#f9fbff;border:1px solid var(--line)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;margin:10px 0}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}.blue{background:#2764a5}.gold{background:#e7a21a}.teal{background:#159b9b}
+.status{border-radius:10px;padding:10px 12px;font-weight:bold;margin-top:12px;background:#fff6dc;color:#805900}.status.good{background:#e3f8ef;color:#176548}
+button{border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:bold;cursor:pointer;background:var(--blue);color:#fff}button.secondary{background:#eaf0f7;color:var(--navy)}button:focus-visible,input:focus-visible{outline:3px solid #f5b942;outline-offset:2px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.steps{padding-left:22px}.steps li{margin:8px 0}
+.question{border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0}.question p{margin:0 0 10px;font-weight:bold}.question label{display:block;padding:6px 8px;border-radius:7px;cursor:pointer}.question label:hover{background:#f3f7fc}.question input{margin-right:8px}.answer{display:none;background:#e3f8ef;color:#176548;border-radius:8px;padding:9px 11px;margin-top:9px}.answer.show{display:block}
+footer{text-align:center;color:var(--muted);font-size:.82rem;padding:0 16px 26px}
+@media(max-width:780px){.layout{grid-template-columns:1fr}.panel{padding:16px}.wrap{padding:0 12px}}
+
+table th{font-weight:bold;color:var(--navy)}
+table tbody tr:nth-child(even){background:#fafcff}
+select:focus{outline:3px solid #f5b942;outline-offset:2px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<div class="kicker">Virtual Physics Lab • มัธยมศึกษาปีที่ 5</div>
+<h1>การสั่นพ้องของเสียงในท่อปลายปิด 1 ข้าง</h1>
+<p>ทดลองปรับความยาวท่อและความถี่เสียง สังเกตคลื่นนิ่ง ตำแหน่งบัพและปฏิบัพ แล้วเชื่อมโยงผลกับเงื่อนไขการสั่นพ้อง</p>
+</div></header>
+<main class="wrap">
+<div class="layout">
+<section>
+<div class="panel">
+<h2>1. แผงควบคุมการทดลอง</h2>
+<div class="control">
+<div class="control-head"><label for="length">ความยาวท่อ (L)</label><span class="value" id="lengthVal">0.50 m</span></div>
+<input id="length" type="range" min="0.20" max="1.20" step="0.01" value="0.50">
+<div class="small">ปรับได้ 0.20–1.20 เมตร</div>
+</div>
+<div class="control">
+<div class="control-head"><label for="freq">ความถี่เสียง (f)</label><span class="value" id="freqVal">340 Hz</span></div>
+<input id="freq" type="range" min="100" max="1000" step="1" value="340">
+<div class="small">ปรับได้ 100–1,000 เฮิรตซ์</div>
+</div>
+<div class="control">
+<div class="control-head"><label for="amp">ขนาดการสั่น (เพื่อการมองเห็น)</label><span class="value" id="ampVal">70%</span></div>
+<input id="amp" type="range" min="20" max="100" step="5" value="70">
+</div>
+<div class="formula">
+<strong>แบบจำลอง</strong><br>
+อัตราเร็วเสียง \(v\) = 340 m/s<br>
+ท่อปลายปิด: <strong>L = (2n−1)λ/4</strong><br>
+ความถี่เรโซแนนซ์: <strong>fₙ = (2n−1)v/(4L)</strong>
+</div>
+<div class="stats">
+<div class="stat"><span>ความยาวคลื่น (λ)</span><strong id="lambdaVal">1.00 m</strong></div>
+<div class="stat"><span>ฮาร์มอนิกที่ใกล้ที่สุด</span><strong id="modeVal">n = 1</strong></div>
+<div class="stat"><span>ความถี่เรโซแนนซ์ใกล้สุด</span><strong id="resVal">170 Hz</strong></div>
+<div class="stat"><span>ความคลาดจากเรโซแนนซ์</span><strong id="deltaVal">170 Hz</strong></div>
+</div>
+<div id="status" class="status">ยังไม่ใกล้การสั่นพ้อง — ลองปรับ L หรือ f</div>
+<div class="control">
+  <div class="control-head"><label for="modeSelect">เลือกโหมดการสั่นพ้อง</label><span class="value" id="modeSelectVal">มูลฐาน</span></div>
+  <select id="modeSelect" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff">
+    <option value="1">มูลฐาน n = 1 (ฮาร์มอนิกที่ 1)</option>
+    <option value="2">n = 2 (ฮาร์มอนิกที่ 3)</option>
+    <option value="3">n = 3 (ฮาร์มอนิกที่ 5)</option>
+    <option value="4">n = 4 (ฮาร์มอนิกที่ 7)</option>
+    <option value="5">n = 5 (ฮาร์มอนิกที่ 9)</option>
+  </select>
+</div>
+<div class="actions"><button id="reset">คืนค่าเริ่มต้น</button><button class="secondary" id="resonance">ตั้งความถี่ตามโหมดที่เลือก</button></div>
+</div>
+<div class="panel">
+<h2>2. แนวทางทดลอง</h2>
+<ol class="steps">
+<li>กำหนดความยาวท่อ (L) ด้วยแถบเลื่อน</li>
+<li>ปรับความถี่เสียง (f) และสังเกตรูปคลื่นนิ่งในท่อ</li>
+<li>หาตำแหน่งที่ปลายปิดเป็นบัพ และปลายเปิดเป็นปฏิบัพ</li>
+<li>กด “ตั้งความถี่ให้สั่นพ้อง” เพื่อเปรียบเทียบกับค่าที่ทดลองเอง</li>
+<li>บันทึกค่า L, f และรูปแบบคลื่นที่พบ</li>
+</ol>
+<p class="small">หมายเหตุ: เป็นภาพจำลองเชิงอุดมคติ ไม่ได้เล่นเสียงจริง และยังไม่รวมการแก้ไขปลายเปิด (end correction)</p>
+</div>
+</section>
+<section>
+<div class="panel">
+<h2>3. ภาพคลื่นนิ่งภายในท่อ</h2>
+<canvas id="tubeCanvas" width="900" height="390" aria-label="ภาพจำลองคลื่นนิ่งในท่อปลายปิดหนึ่งข้าง"></canvas>
+<div class="legend">
+<span><i class="dot blue"></i>เส้นคลื่นนิ่ง ณ เวลาปัจจุบัน</span>
+<span><i class="dot gold"></i>บัพ (Node): การกระจัดเป็นศูนย์</span>
+<span><i class="dot teal"></i>ปฏิบัพ (Antinode): การกระจัดมากสุด</span>
+</div>
+<p class="small">ปลายปิดอยู่ทางซ้ายเป็น <strong>บัพของความดัน/บัพการกระจัดเป็นศูนย์</strong> และปลายเปิดอยู่ทางขวาเป็น <strong>ปฏิบัพของการกระจัด</strong> เฉพาะเมื่อเกิดเรโซแนนซ์ จุดสีจะแสดงตำแหน่งตามโหมดที่กำลังเกิดขึ้น</p>
+<div class="stats">
+<div class="stat"><span>จำนวนช่วง ¼ λ ภายในท่อ</span><strong id="quartersVal">1.0 ช่วง</strong></div>
+<div class="stat"><span>อัตราส่วน L / (λ/4)</span><strong id="ratioVal">2.00</strong></div>
+</div>
+</div>
+<div class="panel">
+<h2>4. กราฟคลื่นนิ่งตามตำแหน่ง</h2>
+<canvas id="graphCanvas" width="900" height="300" aria-label="กราฟการกระจัดของคลื่นนิ่งตามตำแหน่งภายในท่อ"></canvas>
+<p class="small">กราฟแสดงรูปร่างการกระจัดตามตำแหน่ง ณ เวลาปัจจุบัน โดยตรึงบัพที่ปลายปิด และปฏิบัพที่ปลายเปิดเฉพาะเมื่อเกิดรูปแบบเรโซแนนซ์ที่เหมาะสม</p>
+</div>
+</section>
+</div>
+<div class="panel">
+<h2>5. ตารางบันทึกผลการทดลอง</h2>
+<p class="small">ทดลองปรับ L และ f ให้เกิดเรโซแนนซ์ แล้วบันทึกผลอย่างน้อย 3 ครั้ง จากนั้นใช้ข้อมูลสรุปความสัมพันธ์ของตัวแปร</p>
+<div style="overflow:auto">
+<table id="dataTable" style="width:100%;border-collapse:collapse;min-width:620px">
+<thead><tr style="background:#edf5fc">
+<th style="padding:9px;border:1px solid var(--line)">ครั้งที่</th>
+<th style="padding:9px;border:1px solid var(--line)">L (m)</th>
+<th style="padding:9px;border:1px solid var(--line)">f (Hz)</th>
+<th style="padding:9px;border:1px solid var(--line)">โหมด n</th>
+<th style="padding:9px;border:1px solid var(--line)">f/L (Hz/m)</th>
+<th style="padding:9px;border:1px solid var(--line)">จัดการ</th>
+</tr></thead>
+<tbody id="dataBody"></tbody>
+</table>
+</div>
+<div class="actions">
+<button type="button" id="recordData">บันทึกค่าปัจจุบัน</button>
+<button type="button" class="secondary" id="clearData">ล้างตาราง</button>
+</div>
+<div class="formula"><strong>ตั้งสมมติฐาน:</strong> เมื่อความยาวท่อเพิ่มขึ้น ความถี่เรโซแนนซ์มูลฐานจะ ____________<br>
+<strong>สรุป:</strong> จากผลการทดลอง ความถี่มูลฐานกับความยาวท่อมีความสัมพันธ์แบบ ____________________</div>
+</div>
+
+<div class="panel">
+<h2>6. คำถามท้ายกิจกรรม (5 ข้อ)</h2>
+<p class="small">เลือกคำตอบแล้วกด “ตรวจคำตอบ” เพื่อดูคะแนนและเฉลย</p>
+<form id="quiz">
+<div class="question">
+<p>ข้อ 1. สำหรับท่อปลายปิด 1 ข้าง เงื่อนไขพื้นฐานของการสั่นพ้องคือข้อใด</p>
+<label><input type="radio" name="q1" value="a"> L = nλ/2 ทุกฮาร์มอนิก</label>
+<label><input type="radio" name="q1" value="b"> L = (2n−1)λ/4 โดย n = 1, 2, 3, …</label>
+<label><input type="radio" name="q1" value="c"> L = λ เสมอ</label>
+<div class="answer" id="a1">เฉลย: ข้อ ข — ท่อปลายปิดมีบัพที่ปลายปิดและปฏิบัพที่ปลายเปิด จึงเกิดความยาวท่อเป็นจำนวนคี่เท่าของ λ/4</div>
+</div>
+<div class="question">
+<p>ข้อ 2. ถ้าความยาวท่อ L = 0.50 m และอัตราเร็วเสียง 340 m/s ความถี่เรโซแนนซ์มูลฐานประมาณเท่าใด</p>
+<label><input type="radio" name="q2" value="a"> 170 Hz</label>
+<label><input type="radio" name="q2" value="b"> 340 Hz</label>
+<label><input type="radio" name="q2" value="c"> 680 Hz</label>
+<div class="answer" id="a2">เฉลย: ข้อ ก — f₁ = v/(4L) = 340/(4 × 0.50) = 170 Hz</div>
+</div>
+<div class="question">
+<p>ข้อ 3. เมื่อเพิ่มความยาวท่อ แต่ต้องการให้เป็นการสั่นพ้องมูลฐานเหมือนเดิม ความถี่เรโซแนนซ์จะเปลี่ยนอย่างไร</p>
+<label><input type="radio" name="q3" value="a"> เพิ่มขึ้น</label>
+<label><input type="radio" name="q3" value="b"> ลดลง</label>
+<label><input type="radio" name="q3" value="c"> ไม่เปลี่ยน</label>
+<div class="answer" id="a3">เฉลย: ข้อ ข — f₁ = v/(4L) จึงแปรผกผันกับ L เมื่อท่อยาวขึ้น ความถี่มูลฐานลดลง</div>
+</div>
+<div class="question">
+<p>ข้อ 4. ในการทดลอง ถ้า L คงที่ แต่ปรับ f แล้วปลายเปิดยังไม่เป็นปฏิบัพ ควรสรุปอย่างไร</p>
+<label><input type="radio" name="q4" value="a"> เกิดเรโซแนนซ์แน่นอน เพราะมีคลื่นในท่อ</label>
+<label><input type="radio" name="q4" value="b"> ยังไม่ตรงกับความถี่เรโซแนนซ์ของโหมดนั้น</label>
+<label><input type="radio" name="q4" value="c"> แปลว่าอัตราเร็วเสียงเป็นศูนย์</label>
+<div class="answer" id="a4">เฉลย: ข้อ ข — การสั่นพ้องต้องสอดคล้องกับเงื่อนไขบัพที่ปลายปิดและปฏิบัพที่ปลายเปิด</div>
+</div>
+<div class="question">
+<p>ข้อ 5. ถ้า L = 0.50 m ความถี่มูลฐาน 170 Hz แล้วโหมดถัดไปที่ท่อปลายปิดรองรับมีความถี่เท่าใด</p>
+<label><input type="radio" name="q5" value="a"> 255 Hz</label>
+<label><input type="radio" name="q5" value="b"> 340 Hz</label>
+<label><input type="radio" name="q5" value="c"> 510 Hz</label>
+<div class="answer" id="a5">เฉลย: ข้อ ค — ท่อปลายปิดรองรับฮาร์มอนิกคี่ จึงเป็น 3f₁ = 3(170) = 510 Hz</div>
+</div>
+<button type="button" id="checkQuiz">ตรวจคำตอบ</button>
+<button type="button" class="secondary" id="showAnswers">แสดงเฉลยทั้งหมด</button>
+<div id="score" class="status" aria-live="polite" style="display:none"></div>
+</form>
+</div>
+</main>
+<footer>สื่อการเรียนรู้ฟิสิกส์ ม.5 • แบบจำลองท่อปลายปิดหนึ่งข้าง • ใช้งานแบบออฟไลน์ได้</footer>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const length = $('length'), freq = $('freq'), amp = $('amp'), modeSelect = $('modeSelect');
+const tube = $('tubeCanvas'), graph = $('graphCanvas');
+const tc = tube.getContext('2d'), gc = graph.getContext('2d');
+const v = 340;
+let phase = 0, running = true;
+let records = [];
+
+function modeFrequency(L,n){ return (2*n-1)*v/(4*L); }
+
+function resonance(L){
+  let best={n:1,f:modeFrequency(L,1),delta:Infinity};
+  for(let n=1;n<=5;n++){
+    const f0=modeFrequency(L,n), d=Math.abs(+freq.value-f0);
+    if(d<best.delta) best={n,f:f0,delta:d};
+  }
+  return best;
+}
+
+function selectedMode(){ return +modeSelect.value; }
+
+function isResonant(L,f,n){
+  const f0=modeFrequency(L,n);
+  return Math.abs(f-f0) <= Math.max(3, f0*0.015);
+}
+
+function drawTube(L,f,A,t){
+  const w=tube.width,h=tube.height,x0=90,x1=w-55,ymid=205,scale=(x1-x0)/L;
+  tc.clearRect(0,0,w,h);
+  tc.fillStyle='#f9fbff';tc.fillRect(0,0,w,h);
+  tc.fillStyle='#13233f';tc.font='bold 20px Tahoma';
+  tc.fillText('ท่อปลายปิด',x0-65,42);tc.fillText('ปลายเปิด',x1-55,42);
+
+  tc.fillStyle='#d9e7f5';tc.fillRect(x0,ymid-76,x1-x0,152);
+  tc.strokeStyle='#2764a5';tc.lineWidth=5;tc.beginPath();
+  tc.moveTo(x0,ymid-76);tc.lineTo(x1,ymid-76);tc.moveTo(x0,ymid+76);tc.lineTo(x1,ymid+76);
+  tc.moveTo(x0,ymid-76);tc.lineTo(x0,ymid+76);tc.stroke();
+
+  tc.setLineDash([8,7]);tc.strokeStyle='#8b9bb0';tc.lineWidth=2;tc.beginPath();
+  tc.moveTo(x0,ymid);tc.lineTo(x1,ymid);tc.stroke();tc.setLineDash([]);
+
+  const lambda=v/f, maxA=55*A/100, r=resonance(L), n=isResonant(L,f,selectedMode())?selectedMode():null;
+  const activeN=n || r.n;
+  const resonanceNow=!!n;
+
+  // Off resonance: still show the forced spatial response, but explicitly distinguish it.
+  tc.beginPath();
+  for(let i=0;i<=240;i++){
+    const x=L*i/240,px=x0+x*scale;
+    const y=ymid-maxA*Math.sin(2*Math.PI*x/lambda)*Math.cos(t);
+    if(i===0)tc.moveTo(px,y);else tc.lineTo(px,y);
+  }
+  tc.strokeStyle=resonanceNow?'#2764a5':'#7b8794';tc.lineWidth=4;tc.stroke();
+
+  if(resonanceNow){
+    // Envelope for the selected resonant mode.
+    const lam0=v/freq.value;
+    tc.beginPath();
+    for(let i=0;i<=240;i++){const x=L*i/240,px=x0+x*scale,y=ymid-maxA*Math.sin(2*Math.PI*x/lam0);if(i===0)tc.moveTo(px,y);else tc.lineTo(px,y);}
+    tc.strokeStyle='#159b9b';tc.lineWidth=2;tc.setLineDash([5,5]);tc.stroke();tc.setLineDash([]);
+    tc.beginPath();
+    for(let i=0;i<=240;i++){const x=L*i/240,px=x0+x*scale,y=ymid+maxA*Math.sin(2*Math.PI*x/lam0);if(i===0)tc.moveTo(px,y);else tc.lineTo(px,y);}
+    tc.strokeStyle='#159b9b';tc.lineWidth=2;tc.setLineDash([5,5]);tc.stroke();tc.setLineDash([]);
+
+    tc.fillStyle='#e7a21a';tc.strokeStyle='#fff';tc.lineWidth=2;
+    for(let k=0;k<=activeN;k++){
+      const x=k*(lambda/2);
+      if(x<=L+1e-6){const px=x0+x*scale;tc.beginPath();tc.arc(px,ymid,7,0,Math.PI*2);tc.fill();tc.stroke();}
+    }
+    tc.fillStyle='#159b9b';
+    for(let k=0;k<activeN;k++){
+      const x=(2*k+1)*lambda/4;
+      if(x<=L+1e-6){const px=x0+x*scale;tc.beginPath();tc.arc(px,ymid,7,0,Math.PI*2);tc.fill();tc.stroke();}
+    }
+  } else {
+    // At non-resonance, only the closed-end node is guaranteed by the idealized boundary.
+    tc.fillStyle='#e7a21a';tc.beginPath();tc.arc(x0,ymid,7,0,Math.PI*2);tc.fill();
+    tc.fillStyle='#b45309';tc.font='bold 15px Tahoma';tc.fillText('ยังไม่เกิดเรโซแนนซ์',x0+12,ymid-82);
+  }
+
+  tc.fillStyle='#805900';tc.font='bold 16px Tahoma';tc.fillText('บัพ',x0-28,ymid+105);
+  tc.fillStyle='#087c7c';tc.fillText('ปฏิบัพ',x1-50,ymid+105);
+  tc.fillStyle='#17233b';tc.font='16px Tahoma';tc.fillText('L = '+L.toFixed(2)+' m',x0+(x1-x0)/2-42,ymid+135);
+  tc.fillStyle='#64748b';tc.font='14px Tahoma';
+  tc.fillText(resonanceNow?'โหมดเรโซแนนซ์ที่เลือก: n = '+activeN:'ความถี่ไม่ตรงเรโซแนนซ์: รูปคลื่นยังไม่เป็นบัพ–ปฏิบัพครบคู่',x0,h-14);
+}
+
+function drawGraph(L,f,A,t){
+  const w=graph.width,h=graph.height,left=70,right=25,top=25,bottom=45,gw=w-left-right,gh=h-top-bottom,mid=top+gh/2;
+  gc.clearRect(0,0,w,h);gc.fillStyle='#f9fbff';gc.fillRect(0,0,w,h);
+  gc.strokeStyle='#cbd5e1';gc.lineWidth=1;gc.beginPath();
+  gc.moveTo(left,top);gc.lineTo(left,h-bottom);gc.lineTo(w-right,h-bottom);gc.moveTo(left,mid);gc.lineTo(w-right,mid);gc.stroke();
+  gc.fillStyle='#64748b';gc.font='14px Tahoma';gc.fillText('การกระจัด',8,top+5);gc.fillText('0',left-22,mid+5);gc.fillText('ตำแหน่ง x (m)',w/2-45,h-10);
+  for(let j=0;j<=4;j++){
+    const x=left+gw*j/4;gc.strokeStyle='#e3eaf2';gc.beginPath();gc.moveTo(x,top);gc.lineTo(x,h-bottom);gc.stroke();
+    gc.fillStyle='#64748b';gc.fillText((L*j/4).toFixed(2),x-15,h-bottom+20);
+  }
+
+  const lam=v/f,scale=gh*.42*A/100,resonanceNow=isResonant(L,f,selectedMode());
+
+  gc.beginPath();
+  for(let i=0;i<=300;i++){
+    const x=L*i/300,px=left+gw*i/300,py=mid-scale*Math.sin(2*Math.PI*x/lam)*Math.cos(t);
+    if(i===0)gc.moveTo(px,py);else gc.lineTo(px,py);
+  }
+  gc.strokeStyle=resonanceNow?'#2764a5':'#7b8794';gc.lineWidth=3;gc.stroke();
+
+  // Boundary markers: node at closed end always; antinode at open end only at resonance.
+  gc.fillStyle='#e7a21a';gc.beginPath();gc.arc(left,mid,6,0,Math.PI*2);gc.fill();
+  if(resonanceNow){
+    const n=selectedMode();
+    for(let k=1;k<=n;k++){
+      const x=(k-0.5)*lam/2;
+      if(x<L){let px=left+gw*x/L;gc.fillStyle='#159b9b';gc.beginPath();gc.arc(px,mid-scale*Math.sin(2*Math.PI*x/lam)*Math.cos(t),5,0,Math.PI*2);gc.fill();}
+    }
+    gc.fillStyle='#159b9b';gc.beginPath();gc.arc(left+gw,mid-scale*Math.sin(2*Math.PI*L/lam)*Math.cos(t),6,0,Math.PI*2);gc.fill();
+    gc.fillStyle='#176548';gc.font='bold 14px Tahoma';gc.fillText('ปลายเปิด = ปฏิบัพ',w-right-150,top+18);
+  } else {
+    gc.fillStyle='#b45309';gc.font='bold 14px Tahoma';gc.fillText('ไม่ใช่รูปเรโซแนนซ์',w-right-145,top+18);
+  }
+}
+
+function update(){
+  const L=+length.value,f=+freq.value,A=+amp.value,r=resonance(L),n=selectedMode(),fSelected=modeFrequency(L,n);
+  const lambda=v/f;
+  $('lengthVal').textContent=L.toFixed(2)+' m';$('freqVal').textContent=f+' Hz';$('ampVal').textContent=A+'%';
+  $('lambdaVal').textContent=lambda.toFixed(2)+' m';
+  $('modeVal').textContent='n = '+r.n+' (ฮาร์มอนิก '+(2*r.n-1)+')';
+  $('resVal').textContent=r.f.toFixed(1)+' Hz';$('deltaVal').textContent=r.delta.toFixed(1)+' Hz';
+  const q=4*L/lambda;$('quartersVal').textContent=q.toFixed(2)+' ช่วง';$('ratioVal').textContent=(L/(lambda/4)).toFixed(2);
+  $('modeSelectVal').textContent=n===1?'มูลฐาน':'n = '+n+' (ฮาร์มอนิก '+(2*n-1)+')';
+
+  const selectedRes=isResonant(L,f,n);
+  $('status').textContent=selectedRes
+    ? 'เกิดการสั่นพ้อง: ปลายปิดเป็นบัพ และปลายเปิดเป็นปฏิบัพ'
+    : 'ยังไม่เกิดเรโซแนนซ์ของโหมดที่เลือก — ลองปรับ f หรือใช้ปุ่มตั้งความถี่';
+  $('status').className='status'+(selectedRes?' good':'');
+  drawTube(L,f,A,phase);drawGraph(L,f,A,phase);
+}
+
+function animate(){if(running){phase+=0.055;update();}requestAnimationFrame(animate)}
+[length,freq,amp,modeSelect].forEach(el=>el.addEventListener('input',update));
+modeSelect.addEventListener('change',update);
+
+$('reset').addEventListener('click',()=>{
+  length.value=.50;freq.value=340;amp.value=70;modeSelect.value='1';update();
+});
+
+$('resonance').addEventListener('click',()=>{
+  const L=+length.value,n=selectedMode(),f0=modeFrequency(L,n);
+  freq.value=Math.max(100,Math.min(1000,Math.round(f0)));update();
+});
+
+// Experimental data table
+function renderData(){
+  const body=$('dataBody');body.innerHTML='';
+  records.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    [i+1,r.L.toFixed(2),r.f.toFixed(0),r.n,(r.f/r.L).toFixed(1)].forEach((v,j)=>{
+      const td=document.createElement('td');td.textContent=v;td.style.cssText='padding:8px;border:1px solid var(--line);text-align:center';tr.appendChild(td);
+    });
+    const td=document.createElement('td');td.style.cssText='padding:8px;border:1px solid var(--line);text-align:center';
+    const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='ลบ';
+    b.onclick=()=>{records.splice(i,1);renderData()};td.appendChild(b);tr.appendChild(td);body.appendChild(tr);
+  });
+}
+$('recordData').addEventListener('click',()=>{
+  const L=+length.value,f=+freq.value,n=selectedMode();
+  if(!isResonant(L,f,n)){alert('ค่าปัจจุบันยังไม่ตรงเรโซแนนซ์ของโหมดที่เลือก กรุณาปรับความถี่หรือกด “ตั้งความถี่ตามโหมดที่เลือก” ก่อนบันทึก');return;}
+  records.push({L,f,n});renderData();
+});
+$('clearData').addEventListener('click',()=>{records=[];renderData()});
+
+const correct={q1:'b',q2:'a',q3:'b',q4:'b',q5:'c'};
+$('checkQuiz').addEventListener('click',()=>{
+  let score=0,answered=0;
+  Object.entries(correct).forEach(([q,a],i)=>{
+    const chosen=document.querySelector('input[name="'+q+'"]:checked');
+    if(chosen){answered++;if(chosen.value===a)score++;}
+    $('a'+(i+1)).classList.add('show');
+  });
+  const s=$('score');s.style.display='block';
+  s.textContent='คะแนนของคุณ '+score+'/5 ข้อ (ตอบแล้ว '+answered+'/5 ข้อ) — อ่านเฉลยเพื่อทบทวน';
+  s.className='status '+(score===5?'good':'');
+});
+$('showAnswers').addEventListener('click',()=>{[1,2,3,4,5].forEach(i=>$('a'+i).classList.add('show'))});
+
+update();renderData();requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>
